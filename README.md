@@ -31,6 +31,8 @@ Agent-Assistant — это pet-проект, созданный для углу�
 ```source venv/bin/activate```
 4.  Установите зависимости:
 ```pip install -r requirements.txt```
+5. Заполните файл окружения согласно инструкции в .env.example
 
 ### Запуск
-Запустите сервер с помощью Uvicorn: ```uvicorn main:app --reload```
+Проект поддерживает разделение конфигурации по средам (dev - локальная разработка, test - тестирование, prod - продакшен)
+Запустите сервер с помощью Uvicorn с требуемым значением ENVIRONMENT: например ```ENVIRONMENT=dev uvicorn main:app --reload```
