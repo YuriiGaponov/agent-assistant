@@ -6,5 +6,6 @@ src.__init__
 """
 
 from src.config import get_config
+from src.logger import logger
 
-__all__ = ['get_config']
+__all__ = ['get_config', 'logger']

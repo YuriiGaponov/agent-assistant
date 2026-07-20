@@ -1,6 +1,8 @@
 .codeassistant
 .env*
 !.env.example
+logs/
+!logs/__init__.py
 .mypy_cache
 __pycache__
 .pytest_cache

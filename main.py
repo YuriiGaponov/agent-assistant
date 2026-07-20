@@ -7,7 +7,7 @@
 
 from fastapi import FastAPI
 
-from src import get_config
+from src import get_config, logger
 
 config = get_config()
 
@@ -17,3 +17,5 @@ app = FastAPI(
     description=config.DESCRIPTION,
     version=config.VERSION
 )
+
+logger.info(f'приложение {app.title} запущено')

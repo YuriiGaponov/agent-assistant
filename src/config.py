@@ -9,6 +9,7 @@
 
 
 import os
+from enum import Enum
 from pathlib import Path
 from functools import lru_cache
 
@@ -20,6 +21,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 ENV_MODE = os.getenv('ENVIRONMENT', 'development')
 """Режим окружения: из ENVIRONMENT или 'development' по умолчанию."""
+
+
+class LogLevel(str, Enum):
+    """Допустимые уровни логирования."""
+
+    DEBUG = 'DEBUG'
+    INFO = 'INFO'
+    WARNING = 'WARNING'
+    ERROR = 'ERROR'
+    CRITICAL = 'CRITICAL'
 
 
 class Config(BaseSettings):
@@ -44,10 +55,18 @@ class Config(BaseSettings):
     DEBUG: bool = False
     """bool: Флаг режима отладки приложения. По умолчанию — False."""
 
+    # === Настройки логирования ===
+    LOG_DIR: Path = BASE_DIR / 'logs'
+    """Path: Директория для логов приложения. По умолчанию — 'logs'."""
+
+    LOG_LEVEL: LogLevel = LogLevel.INFO
+    """LogLevel: Уровень логирования. По умолчанию — INFO."""
+
     model_config = SettingsConfigDict(
         env_file=(BASE_DIR / f".env.{ENV_MODE}"),
         env_file_encoding='utf-8',
-        extra='ignore'
+        extra='ignore',
+        populate_by_name=True,
     )
 
 
