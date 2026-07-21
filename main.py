@@ -7,7 +7,7 @@
 
 from fastapi import FastAPI
 
-from src import get_config, logger
+from src import get_config, logger, router
 
 config = get_config()
 
@@ -17,5 +17,7 @@ app = FastAPI(
     description=config.DESCRIPTION,
     version=config.VERSION
 )
+
+app.include_router(router)
 
 logger.info(f'приложение {app.title} запущено')
