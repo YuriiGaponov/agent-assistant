@@ -1,4 +1,6 @@
 .codeassistant
+docs/
+!docs/__init__.py
 .env*
 !.env.example
 logs/

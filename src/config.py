@@ -33,6 +33,11 @@ class LogLevel(str, Enum):
     CRITICAL = 'CRITICAL'
 
 
+class VectorDB(str, Enum):
+    """Поддерживаемые векторные БД."""
+    CHROMA = 'chroma'
+
+
 class Config(BaseSettings):
     """
     Класс для централизованного управления конфигурацией проекта.
@@ -61,6 +66,17 @@ class Config(BaseSettings):
 
     LOG_LEVEL: LogLevel = LogLevel.INFO
     """LogLevel: Уровень логирования. По умолчанию — INFO."""
+
+    # === Настройки RAG ===
+    DOC_DIR: Path = BASE_DIR / 'docs'
+    """Path: Директория для внутренней документации. По умолчанию — 'docs'."""
+
+    EMBEDDING_MODEL: str = 'all-MiniLM-L6-v2'
+    """str: Модель для генерации эмбеддингов."""
+
+    # === Настройки векторной БД ===
+    VECTOR_DB: VectorDB = VectorDB.CHROMA
+    """VectorDB: Векторная БД."""
 
     model_config = SettingsConfigDict(
         env_file=(BASE_DIR / f".env.{ENV_MODE}"),

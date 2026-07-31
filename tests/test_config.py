@@ -154,3 +154,24 @@ class TestLogDir:
         get_config.cache_clear()
         config = get_config()
         assert config.LOG_DIR == Path('/custom/log/path')
+
+
+class TestDocDir:
+    """Набор тестов для DOC_DIR в Config."""
+
+    def test_default_log_dir_is_base_dir_logs(self):
+        """По умолчанию DOC_DIR указывает на BASE_DIR / 'logs'."""
+        config = get_config()
+        assert config.DOC_DIR == BASE_DIR / 'docs'
+
+    def test_log_dir_is_path_instance(self):
+        """DOC_DIR является экземпляром Path."""
+        config = get_config()
+        assert isinstance(config.DOC_DIR, Path)
+
+    def test_log_dir_from_env(self, monkeypatch):
+        """LOG_DIR переопределяется через переменную окружения."""
+        monkeypatch.setenv('DOC_DIR', '/custom/docs/path')
+        get_config.cache_clear()
+        config = get_config()
+        assert config.DOC_DIR == Path('/custom/docs/path')

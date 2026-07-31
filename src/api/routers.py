@@ -7,8 +7,10 @@
 в экземпляр FastAPI.
 """
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Request, Depends
 
+# from src.dependencies import get_embedding_model
+from src.RAG import semantic_search
 from src.api.schemas import AgentResponse, UserQuery
 
 router = APIRouter()
@@ -50,3 +52,15 @@ async def post_user_query(user_query: UserQuery):
     логикой RAG‑цикла и формированием содержательного ответа.
     """
     return {"status": "success"}
+
+
+# Тестовый эндпоинт, в релизе будет удален
+@router.post("/test_query")
+async def test_post_user_query(
+    user_query: UserQuery,
+    request: Request
+):
+    """Тестовый эндпоинт"""
+    # embedding_model = request.app.state.embedding_model
+    result = await semantic_search(user_query, request)
+    return result
