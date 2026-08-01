@@ -1,4 +1,4 @@
-"""src/api/routers.py
+"""src.api.routers
 
 Модуль роутеров FastAPI для API проекта Agent‑Assistant.
 Содержит базовые эндпоинты: корневой маршрут и проверку
@@ -7,11 +7,12 @@
 в экземпляр FastAPI.
 """
 
-from fastapi import APIRouter, Request, Depends
+from fastapi import APIRouter, Request
 
-# from src.dependencies import get_embedding_model
+from src.interfaces import HealthStatusProtocol
+from src.health_check_service import health_check
 from src.RAG import semantic_search
-from src.api.schemas import AgentResponse, UserQuery
+from src.api.schemas import AgentResponse, UserQuery, HealthStatus
 
 router = APIRouter()
 
@@ -27,8 +28,8 @@ async def get_root() -> str:
     return "Agent-Assistant - AI‑агент для работы с внутренней документацией."
 
 
-@router.get("/health")
-async def get_health() -> dict:
+@router.get("/health", response_model=HealthStatus)
+async def get_health(request: Request) -> HealthStatusProtocol:
     """Проверяет работоспособность сервиса.
 
     Возвращает статус healthy при отсутствии ошибок.
@@ -36,10 +37,7 @@ async def get_health() -> dict:
     с описанием ошибки. Применяется для мониторинга
     и интеграции со средствами оркестрации.
     """
-    try:
-        return {"status": "healthy"}
-    except Exception as e:
-        return {"status": "unhealthy", "error": str(e)}
+    return await health_check(request)
 
 
 @router.post("/ask", response_model=AgentResponse)

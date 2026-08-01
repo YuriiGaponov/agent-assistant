@@ -1,4 +1,4 @@
-"""src.api.schemas.py
+"""src.api.schemas
 
 Модуль схем Pydantic для API проекта Agent‑Assistant.
 Содержит модели данных для валидации запросов и формирования
@@ -6,6 +6,7 @@
 запроса к агенту.
 """
 
+from typing import Literal
 from pydantic import BaseModel
 
 
@@ -28,3 +29,9 @@ class AgentResponse(BaseModel):
     расширена полями с ответом агента и метаданными RAG‑цикла.
     """
     status: str
+
+
+class HealthStatus(BaseModel):
+    """Модель статуса работоспособности сервиса."""
+    status: Literal["healthy", "unhealthy"]
+    doc_store_available: bool

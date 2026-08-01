@@ -4,11 +4,12 @@
 различных модулей и пакетов, а также внешних систем проекта Agent‑Assistant.
 """
 
-from typing import Protocol, Sequence
+from typing import Protocol, Sequence, Literal
 
 import numpy as np
 
 
+# ======= Протоколы обработки внутренней документации =======
 class Document(Protocol):
     """Структура данных прочитанного документа внутренней документации,
     содержащая поля, которые необходимо внести в векторную БД.
@@ -17,6 +18,7 @@ class Document(Protocol):
     embeddings: np.ndarray | None = None
 
 
+# ======= Протоколы взаимодействия с векторной базой данных =======
 class VectorSearchQueryProtocol(Protocol):
     """Протокол объекта запроса для семантического поиска в векторной БД"""
     query: str
@@ -51,3 +53,12 @@ class VectorDBManagerInterface(Protocol):
         для семантического поиска в векторной БД.
         """
         pass
+
+
+# ======= Протоколы проверки работоспособности агента =======
+class HealthStatusProtocol(Protocol):
+    """Протокол состояния работоспособности систем Agent-Assistant"""
+    # Общий статус
+    status: Literal["healthy", "unhealthy"]
+    # Доступность хранилища внутренней документации
+    doc_store_available: bool

@@ -8,6 +8,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from main import app
+from src.config import Config
 from src.api.schemas import UserQuery
 
 
@@ -27,6 +28,19 @@ def client() -> TestClient:
         FastAPI-приложением.
     """
     return TestClient(app)
+
+
+@pytest.fixture
+def test_config() -> Config:
+    """Возвращает экземпляр конфигурации для тестов.
+
+    Позволяет переопределять отдельные поля (например, пути, флаги)
+    в параметризованных тестах без изменения глобальной конфигурации.
+
+    Returns:
+        Config: Настроенный объект конфигурации.
+    """
+    return Config()
 
 
 @pytest.fixture

@@ -20,7 +20,8 @@ from src.RAG.embedding_service import embedding_model
 from src.RAG.init_vector_collection import init_vector_collection
 from src.RAG.schemas import Document
 from src.RAG.search_service import semantic_search
+from src.RAG.doc_dir_service import doc_dir_exist
 
 
 __all__ = ['embedding_model', 'init_vector_collection', 'Document',
-           'semantic_search']
+           'semantic_search', 'doc_dir_exist']
