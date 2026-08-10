@@ -19,3 +19,5 @@ def test_post_ask_availible(client: TestClient, test_user_query):
     data = response.json()
     assert "status" in data
     assert isinstance(data["status"], str)
+    assert "answer" in data
+    assert isinstance(data["answer"], str)

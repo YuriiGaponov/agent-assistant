@@ -23,15 +23,17 @@ class UserQuery(BaseModel):
 class AgentResponse(BaseModel):
     """Модель ответа ИИ‑агента для клиента.
 
-    Описывает базовый формат ответа от агента. Поле status
-    отражает текущее состояние обработки запроса (например,
-    «success», «pending», «error»). В дальнейших версиях будет
-    расширена полями с ответом агента и метаданными RAG‑цикла.
+    Описывает формат ответа от агента. Поле status отражает
+    текущее состояние обработки запроса (например, «success»,
+    «pending», «error»). Поле answer содержит обобщённый ответ
+    агента, сформированный на основе найденного контекста.
     """
     status: str
+    answer: str
 
 
 class HealthStatus(BaseModel):
     """Модель статуса работоспособности сервиса."""
     status: Literal["healthy", "unhealthy"]
     doc_store_available: bool
+    main_llm_available: bool

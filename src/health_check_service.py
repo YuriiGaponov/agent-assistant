@@ -8,7 +8,7 @@ from typing import Literal
 
 from fastapi import Request
 
-from src.interfaces import HealthStatusProtocol
+from src.interfaces import HealthStatusProtocol, AgentProtocol
 from src.RAG import doc_dir_exist
 
 
@@ -17,6 +17,7 @@ class HealthStatus:
     """Модель статуса работоспособности сервиса."""
     status: Literal["healthy", "unhealthy"] = "healthy"
     doc_store_available: bool = True
+    main_llm_available: bool = True
 
 
 async def health_check(request: Request) -> HealthStatusProtocol:
@@ -24,6 +25,7 @@ async def health_check(request: Request) -> HealthStatusProtocol:
 
     Выполняет следующие проверки:
       1. Доступность директории с документацией (doc_dir_exist).
+      2. Доступность главной LLM (mainLLM.health_check()).
 
     Args:
         request: FastAPI Request, через который получаем доступ к app.state.
@@ -38,5 +40,11 @@ async def health_check(request: Request) -> HealthStatusProtocol:
     if not doc_store_available:
         status.status = "unhealthy"
         status.doc_store_available = doc_store_available
+    # Доступность главной LLM.
+    mainLLM: AgentProtocol = request.app.state.mainLLM
+    main_llm_available = await mainLLM.health_check()
+    if not main_llm_available:
+        status.status = "unhealthy"
+        status.main_llm_available = main_llm_available
 
     return status

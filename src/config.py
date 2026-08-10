@@ -38,6 +38,17 @@ class VectorDB(str, Enum):
     CHROMA = 'chroma'
 
 
+class LLMSource(str, Enum):
+    """Поддерживаемые источники LLM."""
+    OLLAMA = 'ollama'
+
+
+class LLM(str, Enum):
+    """Поддерживаемые LLM."""
+    mistral = 'mistral'
+    qwen = 'qwen2.5'
+
+
 class Config(BaseSettings):
     """
     Класс для централизованного управления конфигурацией проекта.
@@ -66,6 +77,17 @@ class Config(BaseSettings):
 
     LOG_LEVEL: LogLevel = LogLevel.INFO
     """LogLevel: Уровень логирования. По умолчанию — INFO."""
+
+    # === Настройки агентов ===
+    MAIN_LLM_SOURCE: LLMSource | None = None
+    """Источник главной LLM, ОБЯЗАТЕЛЬНО должен быть определен в .env,
+    значение по умолчанию None прерывает запуск всего приложения.
+    """
+
+    MAIN_LLM: LLM | None = None
+    """Главная LLM, ОБЯЗАТЕЛЬНО должен быть определен в .env,
+    значение по умолчанию None прерывает запуск всего приложения.
+    """
 
     # === Настройки RAG ===
     DOC_DIR: Path = BASE_DIR / 'docs'

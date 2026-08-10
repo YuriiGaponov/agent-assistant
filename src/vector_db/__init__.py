@@ -13,11 +13,11 @@
 
 from src.logger import logger
 from src.config import Config, VectorDB
-from src.vector_db.base import BaseDBManager
+from src.interfaces import VectorDBManagerInterface
 from src.vector_db.chroma_db_manager import ChromaDBManager
 
 
-def get_vectorDB_manager(config: Config) -> BaseDBManager:
+def get_vectorDB_manager(config: Config) -> VectorDBManagerInterface:
     """Возвращает экземпляр менеджера векторной БД согласно конфигурации.
 
     Фабрика выбирает реализацию в зависимости от значения config.VECTOR_DB.

@@ -5,16 +5,18 @@
 по векторной БД на основе текстового запроса пользователя.
 """
 
-from fastapi import Request
 
-from src.interfaces import VectorSearchQueryProtocol, VectorDBManagerInterface
+from src.interfaces import (
+    VectorDBManagerInterface, EmbeddingModelProtocol
+)
 from src.RAG.embedding_service import generate_embeddings
 
 
 async def semantic_search(
-    search_request: VectorSearchQueryProtocol,
-    request: Request
-):
+    search_request: str,
+    embedding_model: EmbeddingModelProtocol,
+    vectorDB: VectorDBManagerInterface
+) -> dict:
     """Выполняет семантический поиск по векторной базе данных.
 
     Оркестрирует полный цикл поиска:
@@ -26,8 +28,12 @@ async def semantic_search(
 
     Args:
         search_request: Объект запроса, содержащий текст запроса и опциональные
-                        параметры поиска (top_k, фильтр и т.п.).
-        request: FastAPI Request, через который получаем доступ к app.state.
+                        параметры поиска (top_k, фильтры и т.п.). Конкретные
+                        параметры используются внутри vectorDB.search.
+        embedding_model: Реализация модели эмбеддингов, соответствующая
+                         интерфейсу EmbeddingModelProtocol.
+        vectorDB: Менеджер векторной БД, соответствующий интерфейсу
+                  VectorDBManagerInterface.
 
     Returns:
         Словарь с результатами поиска в формате, возвращаемом Chroma:
@@ -46,10 +52,7 @@ async def semantic_search(
             - distances: вложенные списки расстояний
             (чем меньше — тем ближе вектор).
     """
-    embedding_model = request.app.state.embedding_model
-    vectorDB: VectorDBManagerInterface = request.app.state.vectorDB
-    query = search_request.query
-    embeddings = generate_embeddings(embedding_model, [query])
+    embeddings = generate_embeddings(embedding_model, [search_request])
     results = await vectorDB.search(embeddings)
 
     return results

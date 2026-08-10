@@ -1,4 +1,4 @@
-"""main.py
+"""main
 
 Точка входа FastAPI‑приложения.
 Инициализирует экземпляр приложения app и служит основой для регистрации
@@ -11,7 +11,7 @@ from fastapi import FastAPI
 
 from src import (
     get_config, logger, router, embedding_model, init_vector_collection,
-    get_vectorDB_manager
+    get_vectorDB_manager, init_agent, make_tools
 )
 
 config = get_config()
@@ -26,6 +26,12 @@ async def lifespan(app: FastAPI):
         logger.debug('инициализация менеджера векторной БД...')
         vectorDB = get_vectorDB_manager(config)
         app.state.vectorDB = vectorDB
+        logger.debug('инициализация инструментов агента...')
+        tools = make_tools(embedding_model, vectorDB)
+        app.state.tools = tools
+        logger.debug('инициализация менеджера главной LLM...')
+        agent = init_agent(config, embedding_model, vectorDB)
+        app.state.agent = agent
         logger.debug('инициализация векторной коллекции...')
         await init_vector_collection(app)
         logger.info(f'приложение {app.title} запущено')

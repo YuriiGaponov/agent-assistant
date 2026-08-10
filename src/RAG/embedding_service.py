@@ -7,13 +7,14 @@ import numpy as np
 from sentence_transformers import SentenceTransformer
 
 from src.config import get_config
+from src.interfaces import EmbeddingModelProtocol
 
 config = get_config()
 embedding_model = SentenceTransformer(config.EMBEDDING_MODEL)
 
 
 def generate_embeddings(
-    model: SentenceTransformer, chunks: list[str]
+    model: EmbeddingModelProtocol, chunks: list[str]
 ) -> np.ndarray:
     """Генерирует эмбеддинги для списка текстовых чанков.
 
