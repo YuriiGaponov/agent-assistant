@@ -41,7 +41,7 @@ async def health_check(request: Request) -> HealthStatusProtocol:
         status.status = "unhealthy"
         status.doc_store_available = doc_store_available
     # Доступность главной LLM.
-    mainLLM: AgentProtocol = request.app.state.mainLLM
+    mainLLM: AgentProtocol = request.app.state.agent
     main_llm_available = await mainLLM.health_check()
     if not main_llm_available:
         status.status = "unhealthy"

@@ -8,11 +8,9 @@
 import asyncio
 from pathlib import Path
 
-from sentence_transformers import SentenceTransformer
-
 from src.config import Config
 from src.logger import logger
-from src.interfaces import Document as ReadedDocument
+from src.interfaces import Document as ReadedDocument, EmbeddingModelProtocol
 from src.RAG.doc_dir_service import doc_dir_exist, get_doc_files
 from src.RAG.doc_file_service import get_file_content
 from src.RAG.chunking_service import get_chunks_async
@@ -22,7 +20,7 @@ from src.RAG.schemas import Document
 
 async def read_doc(
     file_path: Path,
-    model: SentenceTransformer
+    model: EmbeddingModelProtocol
 ) -> ReadedDocument:
     """Читает документ и возвращает его в виде модели Document.
 
@@ -38,7 +36,7 @@ async def read_doc(
 
 async def read_all_docs(
     config: Config,
-    model: SentenceTransformer
+    model: EmbeddingModelProtocol
 ) -> list[ReadedDocument]:
     """Читает все документы из указанной директории и возвращает список
     моделей Document.

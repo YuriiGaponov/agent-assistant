@@ -93,6 +93,9 @@ class Config(BaseSettings):
     DOC_DIR: Path = BASE_DIR / 'docs'
     """Path: Директория для внутренней документации. По умолчанию — 'docs'."""
 
+    SUPPORTED_FILE_TYPES: tuple[str] = ('txt',)
+    """Разрешенные типы файлов внутренней документации."""
+
     EMBEDDING_MODEL: str = 'all-MiniLM-L6-v2'
     """str: Модель для генерации эмбеддингов."""
 
