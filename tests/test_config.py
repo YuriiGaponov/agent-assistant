@@ -67,7 +67,7 @@ class TestGetConfig:
         assert config.DESCRIPTION == (
             'Проект AI‑агента, для работы с внутренней документацией.'
         )
-        assert config.VERSION == '0.1_MVP'
+        assert config.VERSION == '1.0'
         assert config.DEBUG is False
 
     def test_debug_false_by_default(self):

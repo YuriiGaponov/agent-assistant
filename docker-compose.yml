@@ -1,0 +1,58 @@
+# ============================================================
+# docker-compose для Agent-Assistant
+#
+# Сервисы:
+#   1. ollama — локальный LLM-сервер (порт 11434)
+#   2. app    — FastAPI-приложение (порт 8000)
+#
+# Перед первым запуском:
+#   1. cp .env.example .env.prod и заполните значения
+#      (MAIN_LLM_SOURCE=ollama, MAIN_LLM=qwen2.5)
+#   2. docker compose up -d --build
+#   3. docker compose exec ollama ollama pull qwen2.5
+# ============================================================
+services:
+  ollama:
+    image: ollama/ollama:0.34.4
+    container_name: ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+      - /etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt:ro
+      - ./ollama-entrypoint.sh:/ollama-entrypoint.sh:ro
+    entrypoint: ["/bin/sh", "/ollama-entrypoint.sh"]
+    healthcheck:
+      # Проверка готовности сервиса, app стартует только после неё.
+      # "ollama list" всегда доступен в образе (в отличие от curl).
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+  app:
+    image: yuriigaponov/agent-assistant
+    container_name: agent-assistant
+    ports:
+      - "8000:8000"
+    environment:
+      ENVIRONMENT: prod
+      HF_HUB_OFFLINE: "1"
+      TRANSFORMERS_OFFLINE: "1"
+      # Внутри Docker-сети Ollama доступен по имени сервиса,
+      # а не по localhost. Читается как клиентом ollama,
+      # так и langchain-ollama (ChatOllama).
+      OLLAMA_HOST: ollama:11434
+    volumes:
+      # создаем и заполняем .env и связываем с контейнером
+      - ./.env.prod:/app/.env.prod:ro
+      - ./database:/app/database
+      - ./docs:/app/docs
+      - ./logs:/app/logs
+    depends_on:
+      ollama:
+        condition: service_healthy
+    restart: unless-stopped
+volumes:
+  ollama-data:

@@ -34,7 +34,7 @@ def get_vectorDB_manager(config: Config) -> VectorDBManagerInterface:
         ValueError: Если указан неподдерживаемый тип векторной БД.
     """
     if config.VECTOR_DB == VectorDB.CHROMA:
-        logger.debug("Инициализирован ChromaDBManager")
         return ChromaDBManager(config)
 
+    logger.error('Неподдерживаемая векторная БД', vectorDB=config.VECTOR_DB)
     raise ValueError(f"Неподдерживаемая векторная БД: {config.VECTOR_DB}")

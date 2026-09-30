@@ -1,4 +1,6 @@
 .codeassistant
+database/
+!database/__init__.py
 docs/
 !docs/__init__.py
 .env*
@@ -8,4 +10,5 @@ logs/
 .mypy_cache
 __pycache__
 .pytest_cache
+test_deploy/
 venv

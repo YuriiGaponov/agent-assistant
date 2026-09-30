@@ -20,6 +20,7 @@ from src.interfaces import (
     EmbeddingModelProtocol, VectorDBManagerInterface
 )
 from src.RAG import semantic_search as _semantic_search
+from src.logger import logger
 
 
 def make_tools(
@@ -60,9 +61,19 @@ def make_tools(
             Строка с найденными фрагментами документов, разделёнными
             пустой строкой.
         """
+        logger.info('выполняется семантический поиск', step='semantic_search')
         result = await _semantic_search(query, embedding_model, vector_db)
         documents = result.get('documents', [[]])
         fragments = list(documents[0]) if documents else []
-        return '\n\n'.join(fragments) if fragments else 'Фрагменты не найдены.'
+        context = (
+            '\n\n'.join(fragments) if fragments else 'Фрагменты не найдены.'
+        )
+        logger.info(
+            'получен результат семантического поиска',
+            step='semantic_search',
+            context=context
+        )
+        return context
 
+    logger.debug('инициализированы инструменты агента')
     return [semantic_search]

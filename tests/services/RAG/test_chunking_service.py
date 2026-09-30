@@ -33,7 +33,7 @@ def test_get_chunks_ignores_empty_blocks() -> None:
 
 
 def test_get_chunks_handles_single_paragraph() -> None:
-    """Обработка текста с единстве��ным абзацем."""
+    """Обработка текста с единственным абзацем."""
     content = "Единственный абзац."
     chunks = get_chunks(content)
     assert len(chunks) == 1
@@ -53,7 +53,7 @@ def test_get_chunks_returns_empty_list_for_whitespace_only() -> None:
 
 
 def test_get_chunks_strips_whitespace() -> None:
-    """Удаление лишних пробелов и переносов в начале/конце чанка."""
+    """Удаление лишних пробелов и переносов �� начале/конце чанка."""
     content = "  Текст с пробелами.  \n\n  Ещё текст.  "
     chunks = get_chunks(content)
     assert len(chunks) == 2

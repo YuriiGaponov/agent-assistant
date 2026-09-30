@@ -21,8 +21,17 @@ class State(BaseModel):
     накопления истории сообщений в ReAct‑цикле.
     """
 
-    query: str
+    user_id: int
+    """идентификатор пользователя"""
+
+    request_id: str | None = None
+    """идентификатор запроса пользователя"""
+
+    query: str | None = None
     """запрос пользователя"""
+
+    step: str | None = None
+    """шаг работы агента"""
 
     messages: Annotated[list, add_messages] = Field(default_factory=list)
     """история сообщений ReAct‑цикла: сообщения модели, вызовы
