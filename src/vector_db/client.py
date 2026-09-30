@@ -26,6 +26,8 @@ def init_client(config: Config) -> ClientAPI:
         ValueError: Если указан неподдерживаемый тип векторной БД.
     """
     if config.VECTOR_DB == VectorDB.CHROMA:
-        return chromadb.Client()
+        return chromadb.PersistentClient(
+            path=config.VECTOR_DB_PATH
+        )
 
     raise ValueError(f"Неподдерживаемая векторная БД: {config.VECTOR_DB}")

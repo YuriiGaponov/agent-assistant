@@ -14,6 +14,7 @@
 - embedding_service: сервис создания эмбеддингов
 - schemas: схемы данных, используемые при обработке документов
 - init_vector_collection: инициализация векторной коллекции при старте
+- safety: обеспечения безопасной индексации
 """
 
 from src.RAG.embedding_service import embedding_model

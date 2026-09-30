@@ -17,9 +17,11 @@ Agent‑Assistant.
     4. Если модель решает дать ответ — цикл завершается, формируется
        обобщённый ответ.
 
-Такая архитектура позволяет легко расширять список инструментов: для
-добавления нового инструмента достаточно описать его в фабрике tools.py,
-граф автоматически передаст его модели через привязку инструментов.
+Граф не зависит от реализации менеджера LLM: он получает готовый объект,
+реализующий LLMManagerInterface (с уже привязанными инструментами), и
+список инструментов для узла ToolNode. Такая архитектура позволяет легко
+расширять список инструментов и подключать новых провайдеров LLM без
+изменения графа.
 
 Промпты вынесены в отдельный модуль src.agent.prompts.
 """
@@ -29,21 +31,16 @@ from typing import Literal
 from langchain_core.messages import (
     AIMessage, HumanMessage, SystemMessage
 )
-from langchain_ollama import ChatOllama
 from langgraph.graph import END, START, StateGraph
 from langgraph.prebuilt import ToolNode
 
-from src.config import Config
-from src.interfaces import (
-    EmbeddingModelProtocol, VectorDBManagerInterface
-)
+from src.interfaces import LLMManagerInterface
 from src.logger import logger
 from src.agent.state import State
 from src.agent.prompts import SYSTEM_PROMPT
-from src.agent.tools import make_tools
 
 
-def make_call_model_node(llm: ChatOllama):
+def make_call_model_node(llm: LLMManagerInterface):
     """Создаёт узел вызова модели в графе агента.
 
     Узел передаёт модели историю сообщений состояния. Модель сама решает,
@@ -51,12 +48,15 @@ def make_call_model_node(llm: ChatOllama):
     дать финальный ответ.
 
     Args:
-        llm: Экземпляр LangChain ChatOllama, к которому привязаны инструменты.
+        llm: Менеджер LLM (LLMManagerInterface), к которому привязаны
+            инструменты.
 
     Returns:
         Callable[[State], dict]: Узел графа, возвращающий сообщение модели.
     """
     async def call_model_node(state: State) -> dict:
+        state.step = 'call_model'
+        logger.info('узел call_model', step='call_model', state=state)
         messages = state.messages
         if not messages:
             # Первый вызов модели: инициализируем системным промптом
@@ -65,8 +65,9 @@ def make_call_model_node(llm: ChatOllama):
                 SystemMessage(content=SYSTEM_PROMPT),
                 HumanMessage(content=state.query),
             ]
-        logger.debug('вызов модели')
+        logger.info('вызов модели', step='call_model', messages=messages)
         response = await llm.ainvoke(messages)
+        logger.info('ответ модели', step='call_model', response=response)
         return {'messages': [response]}
 
     return call_model_node
@@ -101,7 +102,11 @@ def make_should_continue():
     def should_continue(state: State) -> Literal['tools', 'final']:
         last_message = state.messages[-1]
         if isinstance(last_message, AIMessage) and last_message.tool_calls:
+            state.step = 'tool_call'
+            logger.info('переход в узел tools', state=state)
             return 'tools'
+        state.step = 'final'
+        logger.info('переход в узел final', state=state)
         return 'final'
 
     return should_continue
@@ -117,19 +122,21 @@ def make_final_node():
         Callable[[State], dict]: Узел графа, возвращающий обобщённый ответ.
     """
     async def final_node(state: State) -> dict:
+        state.step = 'final'
+        logger.info('узел final', step='final', state=state)
         last_message = state.messages[-1]
-        answer = last_message.content if hasattr(last_message, 'content') else str(last_message)
-        logger.info(f'сформирован ответ: {answer}')
+        answer = (
+            last_message.content
+            if hasattr(last_message, 'content')
+            else str(last_message)
+        )
+        logger.info('сформирован итоговый ответ', step='final', answer=answer)
         return {'answer': answer}
 
     return final_node
 
 
-def build_graph(
-        config: Config,
-        embedding_model: EmbeddingModelProtocol,
-        vector_db: VectorDBManagerInterface
-):
+def build_graph(llm: LLMManagerInterface, tools: list):
     """Собирает и компилирует граф агента для RAG‑цикла.
 
     Строит ReAct‑граф на основе модели состояния State:
@@ -137,21 +144,17 @@ def build_graph(
                     ├─ tools → call_model (цикл)
                     └─ final → END
 
-    Создаёт инструменты через make_tools и привязывает их к модели
-    через bind_tools, что позволяет модели самостоятельно принимать
-    решение о вызове инструментов.
+    Граф не создаёт модель и не привязывает инструменты самостоятельно —
+    он получает готовый менеджер LLM (LLMManagerInterface) с привязанными
+    инструментами и список инструментов для узла ToolNode.
 
     Args:
-        config: Конфигурация проекта.
-        embedding_model: Модель эмбеддингов (EmbeddingModelProtocol).
-        vector_db: Менеджер векторной БД (VectorDBManagerInterface).
+        llm: Менеджер LLM (LLMManagerInterface) с привязанными инструментами.
+        tools: Список инструментов LangChain, доступных агенту.
 
     Returns:
         CompiledStateGraph: Скомпилированный граф LangGraph.
     """
-    tools = make_tools(embedding_model, vector_db)
-    llm = ChatOllama(model=config.MAIN_LLM.value).bind_tools(tools)
-
     graph = StateGraph(State)
     graph.add_node('call_model', make_call_model_node(llm))
     graph.add_node('tools', make_tools_node(tools))

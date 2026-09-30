@@ -1,0 +1,45 @@
+# ---- Системы контроля версий ----
+.git
+.gitignore
+
+# ---- Виртуальные окружения ----
+venv
+.venv
+env
+.env
+
+# ---- Кэши Python ----
+__pycache__
+*.py[cod]
+*$py.class
+.pytest_cache
+.mypy_cache
+.ruff_cache
+.coverage
+htmlcov
+
+# ---- Локальные данные и логи (монтируются как volumes) ----
+logs
+database
+docs
+
+# ---- Конфигурация окружения (содержит секреты) ----
+.env.dev
+.env.test
+.env.prod
+.env.local
+.env.*.local
+
+# ---- Тесты (не нужны в образе) ----
+tests
+
+# ---- Документация проекта ----
+README.md
+CHANGELOG.md
+
+# ---- Разное ----
+Dockerfile
+file
+.dockerignore
+*.md~
+test_deploy/

@@ -38,6 +38,17 @@ class VectorDB(str, Enum):
     CHROMA = 'chroma'
 
 
+class DataBase(str, Enum):
+    """Поддерживаемые реляционные БД."""
+    SQLITE = 'sqlite'
+
+
+# Поддерживаемые драйверы реляционной БД
+DB_DRIVER = {
+    DataBase.SQLITE: 'aiosqlite'
+}
+
+
 class LLMSource(str, Enum):
     """Поддерживаемые источники LLM."""
     OLLAMA = 'ollama'
@@ -47,6 +58,10 @@ class LLM(str, Enum):
     """Поддерживаемые LLM."""
     mistral = 'mistral'
     qwen = 'qwen2.5'
+
+
+# Допустимые типы файлов внутренней документации
+SUPPORTED_DOC_TYPES = {".txt": "text/plain"}
 
 
 class Config(BaseSettings):
@@ -64,7 +79,7 @@ class Config(BaseSettings):
     )
     """str: Краткое описание приложения."""
 
-    VERSION: str = '0.1_MVP'
+    VERSION: str = '1.0'
     """str: Версия приложения."""
 
     # === Режим отладки ===
@@ -102,6 +117,48 @@ class Config(BaseSettings):
     # === Настройки векторной БД ===
     VECTOR_DB: VectorDB = VectorDB.CHROMA
     """VectorDB: Векторная БД."""
+
+    VECTOR_DB_PATH: Path = BASE_DIR / 'database' / 'vec' / 'Agent-Assistant'
+    """Path: Путь к векторной БД."""
+
+    INDEX_MANIFEST_PATH: Path = BASE_DIR / 'database' / 'index_manifest.json'
+    """Path: Путь к файлу манифеста индексации.
+
+    Манифест хранит состояние уже проиндексированных файлов-источников
+    (content_hash, updated_at, source_id). Используется для инкрементальной
+    индексации: при повторных запусках обрабатываются только изменённые
+    и новые файлы.
+    """
+
+    # === Настройки реляционной БД ===
+    DB: DataBase = DataBase.SQLITE
+    """База данных"""
+
+    DB_DRIVER: str = DB_DRIVER[DB]
+    """Драйвер БД."""
+
+    DB_FILE_PATH: Path = BASE_DIR / 'database' / 'db' / 'agent_assistant.db'
+    """Путь к файлу БД (абсолютный, нормализованный)"""
+
+    @property
+    def DATABASE_URL(self) -> str:
+        """str: URL подключения к SQLite‑БД для SQLAlchemy (async)."""
+        return (
+            f"{self.DB.value}+{self.DB_DRIVER}:"
+            f"///{self.DB_FILE_PATH.as_posix()}"
+        )
+
+    # === Секреты и ключи доступа ===
+    JWT_SECRET: str = 'SECRET'
+    """Секретная ключ для генерации JWT-токена."""
+
+    RESET_PW_TOKEN_SECRET: str = 'SECRET'
+    """Секретный ключ для кодирования токена сброса пароля."""
+
+    VERIFICATION_TOKEN_SECRET: str = 'SECRET'
+    """Секретный ключ для кодирования токена подтверждения
+    (например email).
+    """
 
     model_config = SettingsConfigDict(
         env_file=(BASE_DIR / f".env.{ENV_MODE}"),

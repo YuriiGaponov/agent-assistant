@@ -3,12 +3,16 @@
 Пакет реализации агентов в проекте Agent‑Assistant.
 
 Предоставляет:
-    - Фабрику init_agent для создания главного агента в зависимости от
-      выбранного источника LLM (Ollama, Mistral, OpenRouter и т.д.).
+    - Фабрику init_agent для создания агента в зависимости от выбранного
+      источника LLM (Ollama, Mistral, OpenRouter и т.д.).
     - Изоляцию логики выбора и инициализации агента от остального кода,
       что упрощает расширение списка поддерживаемых провайдеров и тестирование.
     - Единый контракт через интерфейс AgentProtocol, гарантирующий наличие
-      стандартных методов (например, run) у любого агента.
+      стандартных методов (health_check, chat) у любого агента.
+
+Пакет отвечает за оркестрацию (построение графа LangGraph и взаимодействие
+с LLM через интерфейс LLMManagerInterface). Вся низкоуровневая логика
+работы с моделью вынесена в отдельный пакет src.llm.
 
 Основные сценарии использования:
     1. Инициализация агента на старте приложения (в startup‑хендлере)
@@ -21,24 +25,26 @@
 Интеграция со стеком проекта:
     - Опирается на src.config (Config, LLMSource) для определения активного
       провайдера.
+    - Использует src.llm (init_llm, LLMManagerInterface) для создания
+      менеджера LLM.
     - Возвращает объект, реализующий интерфейс AgentProtocol, что гарантирует
-      единый контракт для всех агентов (run и др.).
+      единый контракт для всех агентов (health_check, chat).
     - Использует src.logger для логирования выбора и инициализации агента,
       что полезно при деплое и диагностике.
 
 Структура пакета:
     - __init__.py: точка входа, содержит фабрику init_agent и экспортирует
       основные типы и реализации.
-    - base.py: базовая структура агента.
-    - ollama_agent.py: реализация агента на базе Ollama (OllamaAgent).
+    - agent.py: реализация агента (класс Agent), инкапсулирующая логику
+      оркестрации RAG‑цикла без привязки к конкретному LLM‑менеджеру.
     - graph.py: граф агента на базе LangGraph для RAG‑цикла.
     - tools.py: фабрика инструментов агента.
 
 Расширяемость:
     Для добавления нового провайдера достаточно:
-      1. Создать модуль (например, src/agent/mistral_agent.py) с реализацией
-         агента, который соблюдает контракт AgentProtocol.
-      2. Добавить ветку в init_agent для нового значения LLMSource.
+      1. Создать модуль в пакете src.llm (например, src/llm/mistral_llm.py)
+         с реализацией менеджера LLM.
+      2. Добавить ветку в init_llm для нового значения LLMSource.
       3. При необходимости добавить новые значения в enum LLMSource.
 """
 
@@ -47,7 +53,7 @@ from src.config import Config, LLMSource
 from src.interfaces import (
     AgentProtocol, EmbeddingModelProtocol, VectorDBManagerInterface
 )
-from src.agent.ollama_agent import OllamaAgent
+from src.agent.agent import Agent
 from src.agent.tools import make_tools
 
 
@@ -77,8 +83,8 @@ def init_agent(
             f"Не установлен источник LLM: {config.MAIN_LLM_SOURCE}"
         )
     if config.MAIN_LLM_SOURCE == LLMSource.OLLAMA:
-        logger.debug("Инициализирован OllamaLLMManager")
-        return OllamaAgent(config, embedding_model, vector_db)
+        logger.debug("Инициализирован Agent")
+        return Agent(config, embedding_model, vector_db)
     raise ValueError(
         f"Неподдерживаемый источник LLM: {config.MAIN_LLM_SOURCE}"
     )

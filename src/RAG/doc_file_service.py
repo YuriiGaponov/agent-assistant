@@ -12,7 +12,11 @@ import aiofiles
 from pathlib import Path
 
 
-async def get_file_content(file_path: Path, encoding: str = "utf-8") -> str:
+async def get_file_content(
+    file_path: Path,
+    file_type: str,
+    encoding: str = "utf-8"
+) -> str:
     """Читает содержимое файла через специализированную функцию.
 
     Делегирует чтение файла функции read_txt_file. На текущем этапе
@@ -20,7 +24,12 @@ async def get_file_content(file_path: Path, encoding: str = "utf-8") -> str:
     логикой выбора парсера в зависимости от расширения файла.
     Возвращает содержимое файла как строку.
     """
-    return await read_txt_file(file_path, encoding)
+    if file_type == "text/plain":
+        return await read_txt_file(file_path, encoding)
+    else:
+        raise ValueError(
+            f'Отсутствует обработчик файлов типа {file_type}'
+        )
 
 
 async def read_txt_file(file_path: Path,  encoding: str = "utf-8") -> str:
